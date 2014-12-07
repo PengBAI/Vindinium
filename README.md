@@ -4,6 +4,16 @@ version C# with visual studio 2010
 the game of vindinium
 http://http://vindinium.org/
 
+
+## Run with
+
+    client <key> <[training|arena]> <number-of-turns> [server-url]
+
+## Examples:
+
+    client mySecretKey arena 10
+    client mySecretKey training 10 http://localhost:9000
+
  Copyright (C) 2014 Peng BAI <peng.bai@etu.univ-tours.fr>, <baipeng0811@gmail.com>
  
  Polytech Tours, 37200 Tours, France. 
