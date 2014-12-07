@@ -7,7 +7,8 @@ http://http://vindinium.org/
 
 ## Run with
 
-    Console project, run with parameters passing to Main: client <key> <[training|arena]> <number-of-turns> [server-url]
+    Console project, run with parameters passing to Main: 
+    client <key> <[training|arena]> <number-of-turns> [server-url]
 
 ## Examples:
 
