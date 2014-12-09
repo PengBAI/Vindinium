@@ -87,6 +87,7 @@ namespace vindinium
 
         [DataMember]
         internal int y;
+
 		public Pos(int X, int Y){
 			x = X;
 			y = Y;

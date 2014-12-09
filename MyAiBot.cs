@@ -31,7 +31,6 @@ namespace vindinium
 		private void findAllPos(List<Pos> TavernPos, List<Pos> AllOtherMine)
 			{
 			int size = serverStuff.board.Length;
-			Pos pos;
 			for (int x = 0 ; x < size ; x++)
 				{
 				for (int y = 0 ; y < size ; y++)
@@ -39,24 +38,19 @@ namespace vindinium
 					switch (serverStuff.board[x][y])
 						{
 						case Tile.GOLD_MINE_2:
-							pos = new Pos(x, y);
-							AllOtherMine.Add(pos);
+							AllOtherMine.Add(new Pos(x, y));
 							break;
 						case Tile.GOLD_MINE_3:
-							pos = new Pos(x, y);
-							AllOtherMine.Add(pos);
+							AllOtherMine.Add(new Pos(x, y));
 							break;
 						case Tile.GOLD_MINE_4:
-							pos = new Pos(x, y);
-							AllOtherMine.Add(pos);
+							AllOtherMine.Add(new Pos(x, y));
 							break;
 						case Tile.GOLD_MINE_NEUTRAL:
-							pos = new Pos(x, y);
-							AllOtherMine.Add(pos);
+							AllOtherMine.Add(new Pos(x, y));
 							break;
 						case Tile.TAVERN:
-							pos = new Pos(x, y);
-							TavernPos.Add(pos);
+							TavernPos.Add(new Pos(x, y));
 							break;
 						default:
 							break;
@@ -80,7 +74,9 @@ namespace vindinium
 					System.Diagnostics.Process.Start(serverStuff.viewURL);
 				}).Start();
 				}
-
+			/////////////////////////////////////////////////////////////////////////////////
+			//                        begin stratégies                                     //
+			/////////////////////////////////////////////////////////////////////////////////
 			while (serverStuff.finished == false && serverStuff.errored == false)
 				{
 				List<Pos> TavernPos = new List<Pos>();
@@ -88,12 +84,13 @@ namespace vindinium
 				// un ensemble de paths à destinations
 				List<List<Point>> path = new List<List<Point>>();
 
-				aStar = new AStar(serverStuff.board);
+				aStar = new AStar(serverStuff.board, serverStuff.myHero.id);
 				// touver les positions Mine et Tavern
 				findAllPos(TavernPos, AllOtherMine);
+				// prendre cet index comme décision
 				int indexMin = 0;
 
-				if (AllOtherMine.Count == 0)
+				if (serverStuff.myHero.mineCount > AllOtherMine.Count)
 					{
 					// si tous les mine à moi, je reste à Tavern
 					indexMin = moveToNearestTavern(path, TavernPos);
@@ -102,8 +99,22 @@ namespace vindinium
 					{
 					if (serverStuff.myHero.life > 45)
 						{
-						// aller au MineNeutral
-						indexMin = moveToNearestAllOtherMine(path, AllOtherMine);
+						int idHero = hasMostMine();
+						if (idHero != serverStuff.myHero.id && serverStuff.myHero.life > (serverStuff.heroes[idHero].life + 20))
+							{
+							indexMin = moveToHero(path, idHero);
+							if (path[indexMin].Count > 2)
+								{
+								// aller au MineNeutral
+								path.Clear();
+								indexMin = moveToNearestAllOtherMine(path, AllOtherMine);
+								}
+							}
+						else
+							{
+							// aller au MineNeutral
+							indexMin = moveToNearestAllOtherMine(path, AllOtherMine);
+							}
 						}
 					else
 						{
@@ -138,19 +149,24 @@ namespace vindinium
 						}
 					}
 				// arriver à destination
-				if (path[indexMin].Count == 0)
+				else
 					{
 					serverStuff.moveHero(Direction.Stay);
 					}
+				path.Clear();
+				AllOtherMine.Clear();
+				TavernPos.Clear();
 				Console.Out.WriteLine("completed turn " + serverStuff.currentTurn);
 				}
-
+			/////////////////////////////////////////////////////////////////////////////////
+			//                         end  stratégies                                     //
+			/////////////////////////////////////////////////////////////////////////////////
 
 			if (serverStuff.errored)
 				{
 				Console.Out.WriteLine("error: " + serverStuff.errorText);
 				}
-
+			
 			Console.Out.WriteLine("MyAIBot bot finished");
 			}
 
@@ -184,6 +200,7 @@ namespace vindinium
 				}
 			return indexMin;
 			}
+
 		/// <summary>
 		/// bouger à le plus proche Tavern
 		/// </summary>
@@ -214,6 +231,34 @@ namespace vindinium
 				}
 			return indexMin;
 			}
-		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns>id de hero avec plus de mine </returns>
+		private int hasMostMine()
+			{
+			int[] countMine = {serverStuff.heroes[0].mineCount, serverStuff.heroes[1].mineCount, 
+								serverStuff.heroes[2].mineCount, serverStuff.heroes[3].mineCount};
+			int max = countMine.Max();
+			// Positioning max
+			int index = Array.IndexOf(countMine, max);
+			return index;
+			}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		private int moveToHero(List<List<Point>> path, int id)
+			{
+			// start position est le position de MyHero
+			Point startPt = new Point(serverStuff.myHero.pos.x, serverStuff.myHero.pos.y);
+			// trouver le position de Hero avec id
+			Point endPt = new Point(serverStuff.heroes[id].pos.x, serverStuff.heroes[id].pos.y);
+			path.Add(aStar.FindPath(startPt, endPt));
+			return 0;
+			}
+
+		}
 	}

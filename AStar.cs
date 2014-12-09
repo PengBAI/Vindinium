@@ -14,18 +14,20 @@ namespace vindinium
 		private int width;
 		private int height;
 		private Tile[][] map;
+		private int MyHeroId;
 
-		public AStar(Tile[][] board)
+		public AStar(Tile[][] board, int id)
 			{
 			width = board.Length;
 			height = board.Length;
 			map = board;
+			MyHeroId = id;
 			}
 
 		public List<Point> FindPath(Point startPoint, Point endPoint )
 			{
 			// initialiser 
-			InitializeSearchNodes(map, endPoint);
+			InitializeSearchNodes(map,startPoint, endPoint);
 
 			if (startPoint == endPoint)
 				{
@@ -173,7 +175,7 @@ namespace vindinium
 			return currentTile;
 			}
 
-		private void InitializeSearchNodes(Tile[][] map, Point endPoint)
+		private void InitializeSearchNodes(Tile[][] map, Point startPoint, Point endPoint)
 			{
 			searchNodes = new SearchNode[width, height];
 			for (int x = 0 ; x < width ; x++)
@@ -182,7 +184,8 @@ namespace vindinium
 					{
 					SearchNode node = new SearchNode();
 					node.Position = new Point(x, y);
-					node.Walkable = map[x][y] == Tile.FREE || map[x][y] == Tile.HERO_1; 
+					node.Walkable = map[x][y] == Tile.FREE || map[x][y] == Tile.HERO_1 || map[x][y] == Tile.HERO_2 ||
+									map[x][y] == Tile.HERO_3 || map[x][y] == Tile.HERO_4;
 					if (node.Walkable)
 						{
 						node.Neighbors = new SearchNode[4];
@@ -190,12 +193,19 @@ namespace vindinium
 						}
 					}
 				}
-			// ajouter end Point
+			// ajouter endPoint
 			SearchNode endNode = new SearchNode();
 			endNode.Position = new Point(endPoint.X, endPoint.Y);
 			endNode.Walkable = true;
 			endNode.Neighbors = new SearchNode[4];
 			searchNodes[endPoint.X, endPoint.Y] = endNode;
+			// ajouter startPoint
+			SearchNode startNode = new SearchNode();
+			startNode.Position = new Point(startPoint.X, startPoint.Y);
+			startNode.Walkable = true;
+			startNode.Neighbors = new SearchNode[4];
+			searchNodes[startPoint.X, startPoint.Y] = startNode;
+
 			// ajouter neighbors
 			for (int x = 0 ; x < width ; x++)
 				{
