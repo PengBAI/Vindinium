@@ -184,8 +184,8 @@ namespace vindinium
 					{
 					SearchNode node = new SearchNode();
 					node.Position = new Point(x, y);
-					node.Walkable = map[x][y] == Tile.FREE || map[x][y] == Tile.HERO_1 || map[x][y] == Tile.HERO_2 ||
-									map[x][y] == Tile.HERO_3 || map[x][y] == Tile.HERO_4;
+					node.Walkable = map[x][y] == Tile.FREE; /*|| map[x][y] == Tile.HERO_1 || 
+									map[x][y] == Tile.HERO_2 || map[x][y] == Tile.HERO_3 || map[x][y] == Tile.HERO_4;*/
 					if (node.Walkable)
 						{
 						node.Neighbors = new SearchNode[4];
