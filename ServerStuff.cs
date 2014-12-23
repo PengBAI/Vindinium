@@ -8,212 +8,218 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace vindinium
-{
-    class ServerStuff
-    {
-        private string key;
-        private bool trainingMode;
-        private uint turns;
-        private string map;
+	{
+	class ServerStuff
+		{
+		private string key;
+		private bool trainingMode;
+		private uint turns;
+		private string map;
 
-        private string playURL;
-        public string viewURL { get; private set; }
+		private string playURL;
+		public string viewURL { get; private set; }
 
-        public Hero myHero { get; private set; }
-        public List<Hero> heroes { get; private set; }
+		public Hero myHero { get; private set; }
+		public List<Hero> heroes { get; private set; }
 
-        public int currentTurn { get; private set; }
-        public int maxTurns { get; private set; }
-        public bool finished { get; private set; }
-        public bool errored { get; private set; }
-        public string errorText { get; private set; }
-        private string serverURL;
+		public int currentTurn { get; private set; }
+		public int maxTurns { get; private set; }
+		public bool finished { get; private set; }
+		public bool errored { get; private set; }
+		public string errorText { get; private set; }
+		private string serverURL;
 
-        public Tile[][] board { get; private set; }
+		public Tile[][] board { get; private set; }
 
-        //if training mode is false, turns and map are ignored8
-        public ServerStuff(string key, bool trainingMode, uint turns, string serverURL, string map)
-        {
-            this.key = key;
-            this.trainingMode = trainingMode;
-            this.serverURL = serverURL;
+		//if training mode is false, turns and map are ignored8
+		public ServerStuff(string key, bool trainingMode, uint turns, string serverURL, string map)
+			{
+			this.key = key;
+			this.trainingMode = trainingMode;
+			this.serverURL = serverURL;
 
-            //the reaons im doing the if statement here is so that i dont have to do it later
-            if (trainingMode)
-            {
-                this.turns = turns;
-                this.map = map;
-            }
-        }
+			//the reaons im doing the if statement here is so that i dont have to do it later
+			if (trainingMode)
+				{
+				this.turns = turns;
+				this.map = map;
+				}
+			}
 
-        //initializes a new game, its syncronised
-        public void createGame()
-        {
-            errored = false;
+		//initializes a new game, its syncronised
+		public void createGame()
+			{
+			errored = false;
 
-            string uri;
-            
-            if (trainingMode)
-            {
-                uri = serverURL + "/api/training";
-            }
-            else
-            {
-                uri = serverURL + "/api/arena";
-            }
+			string uri;
 
-            string myParameters = "key=" + key;
-            if (trainingMode) myParameters += "&turns=" + turns;
-            if (map != null) myParameters += "&map=" + map;
+			if (trainingMode)
+				{
+				uri = serverURL + "/api/training";
+				}
+			else
+				{
+				uri = serverURL + "/api/arena";
+				}
 
-            //make the request
-            using (WebClient client = new WebClient())
-            {
-                client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-                try
-                {
-                    string result = client.UploadString(uri, myParameters);
-                    deserialize(result);
-                }
-                catch (WebException exception)
-                {
-                    errored = true;
-                    using (var reader = new StreamReader(exception.Response.GetResponseStream()))
-                    {
-                        errorText = reader.ReadToEnd();
-                    }
-                }
-            }
-        }
+			string myParameters = "key=" + key;
+			if (trainingMode) myParameters += "&turns=" + turns;
+			if (map != null) myParameters += "&map=" + map;
 
-        private void deserialize(string json)
-        {
-            // convert string to stream
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            //byte[] byteArray = Encoding.ASCII.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+			//make the request
+			using (WebClient client = new WebClient())
+				{
+				client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+				try
+					{
+					string result = client.UploadString(uri, myParameters);
+					deserialize(result);
+					}
+				catch (WebException exception)
+					{
+					errored = true;
+					using (var reader = new StreamReader(exception.Response.GetResponseStream()))
+						{
+						errorText = reader.ReadToEnd();
+						}
+					}
+				}
+			}
 
-            DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(GameResponse));
-            GameResponse gameResponse = (GameResponse)ser.ReadObject(stream);
+		private void deserialize(string json)
+			{
+			// convert string to stream
+			byte[] byteArray = Encoding.UTF8.GetBytes(json);
+			//byte[] byteArray = Encoding.ASCII.GetBytes(json);
+			MemoryStream stream = new MemoryStream(byteArray);
 
-            playURL = gameResponse.playUrl;
-            viewURL = gameResponse.viewUrl;
+			DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(GameResponse));
+			GameResponse gameResponse = (GameResponse)ser.ReadObject(stream);
 
-            myHero = gameResponse.hero;
-            heroes = gameResponse.game.heroes;
+			playURL = gameResponse.playUrl;
+			viewURL = gameResponse.viewUrl;
 
-            currentTurn = gameResponse.game.turn;
-            maxTurns = gameResponse.game.maxTurns;
-            finished = gameResponse.game.finished;
+			myHero = gameResponse.hero;
+			heroes = gameResponse.game.heroes;
 
-            createBoard(gameResponse.game.board.size, gameResponse.game.board.tiles);
-        }
+			currentTurn = gameResponse.game.turn;
+			maxTurns = gameResponse.game.maxTurns;
+			finished = gameResponse.game.finished;
 
-        public void moveHero(string direction)
-        {
-            string myParameters = "key=" + key + "&dir=" + direction;
-            
-            //make the request
-            using (WebClient client = new WebClient())
-            {
-                client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+			createBoard(gameResponse.game.board.size, gameResponse.game.board.tiles);
+			}
 
-                try
-                {
-                    string result = client.UploadString(playURL, myParameters);
-                    deserialize(result);
-                }
-                catch(WebException exception)
-                {
-                    errored = true;
-                    using(var reader = new StreamReader(exception.Response.GetResponseStream()))
-                    {
-                        errorText = reader.ReadToEnd();
-                    }
-                }
-            }
-        }
+		public void moveHero(string direction)
+			{
+			string myParameters = "key=" + key + "&dir=" + direction;
 
-        private void createBoard(int size, string data)
-        {
-            //check to see if the board list is already created, if it is, we just overwrite its values
-            if (board == null || board.Length != size)
-            {
-                board = new Tile[size][];
+			//make the request
+			using (WebClient client = new WebClient())
+				{
+				client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 
-                //need to initialize the lists within the list
-                for (int i = 0; i < size; i++)
-                {
-                    board[i] = new Tile[size];
-                }
-            }
+				try
+					{
+					string result = client.UploadString(playURL, myParameters);
+					deserialize(result);
+					}
+				catch (WebException exception)
+					{
+					errored = true;
+					using (var reader = new StreamReader(exception.Response.GetResponseStream()))
+						{
+						errorText = reader.ReadToEnd();
+						}
+					}
+				}
+			}
 
-            //convert the string to the List<List<Tile>>
-            int x = 0;
-            int y = 0;
-            char[] charData = data.ToCharArray();
+		private void createBoard(int size, string data)
+			{
+			//check to see if the board list is already created, if it is, we just overwrite its values
+			if (board == null || board.Length != size)
+				{
+				board = new Tile[size][];
 
-            for(int i = 0;i < charData.Length;i += 2)
-            {
-                switch (charData[i])
-                {
-                    case '#':
-                        board[x][y] = Tile.IMPASSABLE_WOOD;
-                        break;
-                    case ' ':
-                        board[x][y] = Tile.FREE;
-                        break;
-                    case '@':
-                        switch (charData[i + 1])
-                        {
-                            case '1':
-                                board[x][y] = Tile.HERO_1;
-                                break;
-                            case '2':
-                                board[x][y] = Tile.HERO_2;
-                                break;
-                            case '3':
-                                board[x][y] = Tile.HERO_3;
-                                break;
-                            case '4':
-                                board[x][y] = Tile.HERO_4;
-                                break;
+				//need to initialize the lists within the list
+				for (int i = 0 ; i < size ; i++)
+					{
+					board[i] = new Tile[size];
+					}
+				}
 
-                        }
-                        break;
-                    case '[':
-                        board[x][y] = Tile.TAVERN;
-                        break;
-                    case '$':
-                        switch (charData[i + 1])
-                        {
-                            case '-':
-                                board[x][y] = Tile.GOLD_MINE_NEUTRAL;
-                                break;
-                            case '1':
-                                board[x][y] = Tile.GOLD_MINE_1;
-                                break;
-                            case '2':
-                                board[x][y] = Tile.GOLD_MINE_2;
-                                break;
-                            case '3':
-                                board[x][y] = Tile.GOLD_MINE_3;
-                                break;
-                            case '4':
-                                board[x][y] = Tile.GOLD_MINE_4;
-                                break;
-                        }
-                        break;
-                }
+			//convert the string to the List<List<Tile>>
+			int x = 0;
+			int y = 0;
+			char[] charData = data.ToCharArray();
 
-                //time to increment x and y
-                y++;
-                if (y == size)
-                {
-                    y = 0;
-                    x++;
-                }
-            }
-        }
-    }
-}
+			for (int i = 0 ; i < charData.Length ; i += 2)
+				{
+				switch (charData[i])
+					{
+					case '#':
+						board[x][y] = Tile.IMPASSABLE_WOOD;
+						break;
+					case ' ':
+						board[x][y] = Tile.FREE;
+						break;
+					case '@':
+						switch (charData[i + 1])
+							{
+							case '1':
+								board[x][y] = Tile.HERO_1;
+								break;
+							case '2':
+								board[x][y] = Tile.HERO_2;
+								break;
+							case '3':
+								board[x][y] = Tile.HERO_3;
+								break;
+							case '4':
+								board[x][y] = Tile.HERO_4;
+								break;
+
+							}
+						break;
+					case '[':
+						board[x][y] = Tile.TAVERN;
+						break;
+					case '$':
+						switch (charData[i + 1])
+							{
+							case '-':
+								board[x][y] = Tile.GOLD_MINE_NEUTRAL;
+								break;
+							case '1':
+								board[x][y] = Tile.GOLD_MINE_1;
+								break;
+							case '2':
+								board[x][y] = Tile.GOLD_MINE_2;
+								break;
+							case '3':
+								board[x][y] = Tile.GOLD_MINE_3;
+								break;
+							case '4':
+								board[x][y] = Tile.GOLD_MINE_4;
+								break;
+							}
+						break;
+					}
+
+				//time to increment x and y
+				y++;
+				if (y == size)
+					{
+					y = 0;
+					x++;
+					}
+				/*x++;
+				if (x == size)
+					{
+					x = 0;
+					y++;
+					}*/
+				}
+			}
+		}
+	}

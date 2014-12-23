@@ -17,49 +17,6 @@ namespace vindinium
 			this.serverStuff = serverStuff;
 			}
 
-		/// <summary>
-		/// trouver les mine GOLD_MINE_NEUTRAL, GOLD_MINE_2, GOLD_MINE_3, GOLD_MINE_4
-		/// récupérer les positons dans le map
-		///                  |----------------> Y
-		///                  |
-		///                  |
-		///                  |
-		///                  |
-		///                  |
-		///                  v X
-		/// </summary>
-		private void findAllPos(List<Pos> TavernPos, List<Pos> AllOtherMine)
-			{
-			int size = serverStuff.board.Length;
-			for (int x = 0 ; x < size ; x++)
-				{
-				for (int y = 0 ; y < size ; y++)
-					{
-					switch (serverStuff.board[x][y])
-						{
-						case Tile.GOLD_MINE_2:
-							AllOtherMine.Add(new Pos(x, y));
-							break;
-						case Tile.GOLD_MINE_3:
-							AllOtherMine.Add(new Pos(x, y));
-							break;
-						case Tile.GOLD_MINE_4:
-							AllOtherMine.Add(new Pos(x, y));
-							break;
-						case Tile.GOLD_MINE_NEUTRAL:
-							AllOtherMine.Add(new Pos(x, y));
-							break;
-						case Tile.TAVERN:
-							TavernPos.Add(new Pos(x, y));
-							break;
-
-						default:
-							break;
-						}
-					}
-				}
-			}
-
 		//starts everything
 		public void run()
 			{
@@ -76,10 +33,11 @@ namespace vindinium
 				}).Start();
 				}
 			/////////////////////////////////////////////////////////////////////////////////
-			//                        begin stratégies                                     //
-			/////////////////////////////////////////////////////////////////////////////////
+			//                        BEGIN: stratégies                                    //
+			//-----------------------------------------------------------------------------//
 			while (serverStuff.finished == false && serverStuff.errored == false)
 				{
+
 				List<Pos> TavernPos = new List<Pos>();
 				List<Pos> AllOtherMine = new List<Pos>();
 				// un ensemble de paths à destinations
@@ -101,9 +59,10 @@ namespace vindinium
 					if (serverStuff.myHero.life > 45)
 						{
 						int idHero = hasLessLife();
-						if (idHero != serverStuff.myHero.id && serverStuff.myHero.life > (serverStuff.heroes[idHero].life))
+						//int idHero = hasMostMine();
+						if (idHero != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHero - 1].life)
 							{
-							indexMin = moveToHero(path, idHero);
+							indexMin = moveToHero(path, idHero - 1);
 							if (path[indexMin].Count > 2)
 								{
 								// aller au MineNeutral
@@ -113,6 +72,7 @@ namespace vindinium
 							}
 						else
 							{
+
 							if (isClosestHero())
 								{
 								// aller au Tavern
@@ -160,15 +120,16 @@ namespace vindinium
 				// arriver à destination
 				else
 					{
-					serverStuff.moveHero(Direction.North);
+					serverStuff.moveHero(Direction.Stay);
 					}
+				// supprimer des donnée de ce tour
 				path.Clear();
 				AllOtherMine.Clear();
 				TavernPos.Clear();
 				Console.Out.WriteLine("completed turn " + serverStuff.currentTurn);
 				}
-			/////////////////////////////////////////////////////////////////////////////////
-			//                         end  stratégies                                     //
+			//-----------------------------------------------------------------------------//
+			//                         END:  stratégies                                    //
 			/////////////////////////////////////////////////////////////////////////////////
 
 			if (serverStuff.errored)
@@ -179,8 +140,83 @@ namespace vindinium
 			Console.Out.WriteLine("MyAIBot bot finished");
 			}
 
+
+		//////////////////////////////////////////////////////////////////////////////////////
+		//    BEGIN:    Toutes les fonctions servent à calculer des info(path) dans map		//
+		//////////////////////////////////////////////////////////////////////////////////////
+
+
 		/// <summary>
-		/// bouger à le plus proche OtherMine
+		/// trouver les mine GOLD_MINE_NEUTRAL, GOLD_MINE_(1, 2, 3, 4) sauf mon mine
+		/// récupérer les positons dans le map
+		///                  |----------------> Y
+		///                  |
+		///                  |
+		///                  |
+		///                  |
+		///                  |
+		///                  v X
+		/// </summary>
+		private void findAllPos(List<Pos> TavernPos, List<Pos> AllOtherMine)
+			{
+			int size = serverStuff.board.Length;
+			int idMyHero = serverStuff.myHero.id;
+			for (int x = 0 ; x < size ; x++)
+				{
+				for (int y = 0 ; y < size ; y++)
+					{
+					switch (serverStuff.board[x][y])
+						{
+						case Tile.GOLD_MINE_1:
+							// si le mine à moi, on break
+							if (idMyHero == 1)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_2:
+							if (idMyHero == 2)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_3:
+							if (idMyHero == 3)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_4:
+							if (idMyHero == 4)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_NEUTRAL:
+							AllOtherMine.Add(new Pos(x, y));
+							break;
+						case Tile.TAVERN:
+							TavernPos.Add(new Pos(x, y));
+							break;
+						}
+					}
+				}
+			}
+
+		/// <summary>
+		/// bouger à le plus proche OtherMine sauf lequel à moi
 		/// </summary>
 		/// <param name="path">ensemble de path à tous les MineNeutrals</param>
 		/// <returns>index de plus proche MineNeutral dans List path</returns>
@@ -259,7 +295,7 @@ namespace vindinium
 					HeroPos.Add(new Pos(serverStuff.heroes[i].pos.x, serverStuff.heroes[i].pos.y));
 					}
 				}
-			
+
 			foreach (Pos tmpPos in HeroPos)
 				{
 				// start position est le position de MyHero
@@ -287,6 +323,7 @@ namespace vindinium
 				return false;
 				}
 			}
+
 		/// <summary>
 		/// trouver Hero qui a le plus Mine
 		/// </summary>
@@ -302,16 +339,16 @@ namespace vindinium
 			}
 
 		/// <summary>
-		/// 
+		/// quel hero a le moins life
 		/// </summary>
-		/// <returns></returns>
+		/// <returns> id de hero</returns>
 		private int hasLessLife()
 			{
 			int[] countLift = {serverStuff.heroes[0].life, serverStuff.heroes[1].life, 
 								serverStuff.heroes[2].life, serverStuff.heroes[3].life};
 			int min = countLift.Min();
 			int index = Array.IndexOf(countLift, min);
-			return index;
+			return index + 1;
 			}
 
 		/// <summary>

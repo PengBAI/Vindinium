@@ -48,10 +48,8 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="MyAiBot.cs" />
-    <Compile Include="Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomBot.cs" />
-    <Compile Include="SearchNode.cs" />
     <Compile Include="ServerStuff.cs" />
   </ItemGroup>
   <ItemGroup>

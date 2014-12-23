@@ -5,6 +5,45 @@ using System.Text;
 
 namespace vindinium
 	{
+
+	class SearchNode
+		{
+		public SearchNode Parent;
+		public bool InOpenList;
+		public bool InClosedList;
+		public float DistanceToGoal;
+		public float DistanceTraveled;
+
+		public Point Position;
+		public bool Walkable;
+		public SearchNode[] Neighbors;
+		}
+
+	class Point
+		{
+		int x;
+		int y;
+		public Point() { }
+
+		public Point(int x, int y)
+			{
+			this.x = x;
+			this.y = y;
+			}
+
+		public int X
+			{
+			get { return x; }
+			set { x = value; }
+			}
+
+		public int Y
+			{
+			get { return y; }
+			set { y = value; }
+			}
+		}
+
 	class AStar
 		{
 		private SearchNode[,] searchNodes;
@@ -24,10 +63,10 @@ namespace vindinium
 			MyHeroId = id;
 			}
 
-		public List<Point> FindPath(Point startPoint, Point endPoint )
+		public List<Point> FindPath(Point startPoint, Point endPoint)
 			{
 			// initialiser 
-			InitializeSearchNodes(map,startPoint, endPoint);
+			InitializeSearchNodes(map, startPoint, endPoint);
 
 			if (startPoint == endPoint)
 				{
@@ -184,7 +223,7 @@ namespace vindinium
 					{
 					SearchNode node = new SearchNode();
 					node.Position = new Point(x, y);
-					node.Walkable = map[x][y] == Tile.FREE; /*|| map[x][y] == Tile.HERO_1 || 
+					node.Walkable = map[x][y] == Tile.FREE;/* || map[x][y] == Tile.HERO_1 || 
 									map[x][y] == Tile.HERO_2 || map[x][y] == Tile.HERO_3 || map[x][y] == Tile.HERO_4;*/
 					if (node.Walkable)
 						{
