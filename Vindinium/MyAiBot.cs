@@ -43,7 +43,7 @@ namespace vindinium
 				// un ensemble de paths à destinations
 				List<List<Point>> path = new List<List<Point>>();
 
-				aStar = new AStar(serverStuff.board, serverStuff.myHero.id);
+				aStar = new AStar(serverStuff.board, serverStuff);
 				// touver les positions Mine et Tavern
 				findAllPos(TavernPos, AllOtherMine);
 				// prendre cet index comme décision
@@ -51,8 +51,15 @@ namespace vindinium
 
 				if (serverStuff.myHero.mineCount > AllOtherMine.Count)
 					{
-					// si tous les mine à moi, je reste à Tavern
-					indexMin = moveToNearestTavern(path, TavernPos);
+					if (serverStuff.myHero.life == 100)
+						{
+						serverStuff.moveHero(Direction.Stay);
+						}
+					else
+						{
+						// si tous les mine à moi, je reste à Tavern
+						indexMin = moveToNearestTavern(path, TavernPos);
+						}
 					}
 				else
 					{
@@ -72,7 +79,6 @@ namespace vindinium
 							}
 						else
 							{
-
 							if (isClosestHero())
 								{
 								// aller au Tavern

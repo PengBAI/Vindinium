@@ -53,14 +53,14 @@ namespace vindinium
 		private int width;
 		private int height;
 		private Tile[][] map;
-		private int MyHeroId;
+		private ServerStuff serverStuff;
 
-		public AStar(Tile[][] board, int id)
+		public AStar(Tile[][] board, ServerStuff aServerStuff)
 			{
 			width = board.Length;
 			height = board.Length;
 			map = board;
-			MyHeroId = id;
+			serverStuff = aServerStuff;
 			}
 
 		public List<Point> FindPath(Point startPoint, Point endPoint)
@@ -214,6 +214,50 @@ namespace vindinium
 			return currentTile;
 			}
 
+		/// <summary>
+		/// 4 directions of other heros are not walkable to keep safe
+		/// </summary>
+		/// <param name="endPoint"></param>
+		/// <param name="searchNodes"></param>
+		private void NotWalkableHero(Point endPoint, SearchNode[,] searchNodes)
+			{
+			// other heros' positions
+			List<Pos> HeroPos = new List<Pos>();
+			for (int i = 0 ; i < 4 ; i++)
+				{
+				if (i + 1 != serverStuff.myHero.id)
+					{
+					HeroPos.Add(new Pos(serverStuff.heroes[i].pos.x, serverStuff.heroes[i].pos.y));
+					}
+				}
+			foreach (Pos pos in HeroPos)
+				{
+				// the others are not the target
+				if (endPoint.X != pos.x && endPoint.Y != pos.y)
+					{
+					if (pos.y + 1 < height)
+						{
+						// east
+						searchNodes[pos.x, pos.y + 1] = null;
+						}
+					if (pos.y - 1 >= 0)
+						{
+						//west
+						searchNodes[pos.x, pos.y - 1] = null;
+						}
+					if (pos.x + 1 < width)
+						{
+						// south
+						searchNodes[pos.x + 1, pos.y] = null;
+						}
+					if (pos.x - 1 >= 0)
+						{
+						//north
+						searchNodes[pos.x - 1, pos.y] = null;
+						}
+					}
+				}
+			}
 		private void InitializeSearchNodes(Tile[][] map, Point startPoint, Point endPoint)
 			{
 			searchNodes = new SearchNode[width, height];
@@ -223,8 +267,7 @@ namespace vindinium
 					{
 					SearchNode node = new SearchNode();
 					node.Position = new Point(x, y);
-					node.Walkable = map[x][y] == Tile.FREE;/* || map[x][y] == Tile.HERO_1 || 
-									map[x][y] == Tile.HERO_2 || map[x][y] == Tile.HERO_3 || map[x][y] == Tile.HERO_4;*/
+					node.Walkable = map[x][y] == Tile.FREE;
 					if (node.Walkable)
 						{
 						node.Neighbors = new SearchNode[4];
@@ -232,6 +275,12 @@ namespace vindinium
 						}
 					}
 				}
+
+			//-----------------------------------------------------------------------
+			// Option: ajouter la fonction set 4 directions des heros notwalkable
+			//NotWalkableHero(endPoint, searchNodes);
+			//-----------------------------------------------------------------------
+
 			// ajouter endPoint
 			SearchNode endNode = new SearchNode();
 			endNode.Position = new Point(endPoint.X, endPoint.Y);
