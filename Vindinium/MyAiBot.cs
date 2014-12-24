@@ -62,7 +62,7 @@ namespace vindinium
 						//int idHero = hasMostMine();
 						if (idHero != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHero - 1].life)
 							{
-							indexMin = moveToHero(path, idHero - 1);
+							indexMin = moveToHero(path, idHero);
 							if (path[indexMin].Count > 2)
 								{
 								// aller au MineNeutral
@@ -344,10 +344,10 @@ namespace vindinium
 		/// <returns> id de hero</returns>
 		private int hasLessLife()
 			{
-			int[] countLift = {serverStuff.heroes[0].life, serverStuff.heroes[1].life, 
+			int[] countLife = {serverStuff.heroes[0].life, serverStuff.heroes[1].life, 
 								serverStuff.heroes[2].life, serverStuff.heroes[3].life};
-			int min = countLift.Min();
-			int index = Array.IndexOf(countLift, min);
+			int min = countLife.Min();
+			int index = Array.IndexOf(countLife, min);
 			return index + 1;
 			}
 
@@ -361,7 +361,7 @@ namespace vindinium
 			// start position est le position de MyHero
 			Point startPt = new Point(serverStuff.myHero.pos.x, serverStuff.myHero.pos.y);
 			// trouver le position de Hero avec id
-			Point endPt = new Point(serverStuff.heroes[id].pos.x, serverStuff.heroes[id].pos.y);
+			Point endPt = new Point(serverStuff.heroes[id - 1].pos.x, serverStuff.heroes[id - 1].pos.y);
 			path.Add(aStar.FindPath(startPt, endPt));
 			return 0;
 			}

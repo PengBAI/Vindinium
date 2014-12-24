@@ -78,9 +78,16 @@ namespace vindinium
 				catch (WebException exception)
 					{
 					errored = true;
-					using (var reader = new StreamReader(exception.Response.GetResponseStream()))
+					try
 						{
-						errorText = reader.ReadToEnd();
+						using (var reader = new StreamReader(exception.Response.GetResponseStream()))
+							{
+							errorText = reader.ReadToEnd();
+							}
+						}
+					catch
+						{
+						Console.Out.WriteLine("Connextion time out! ");
 						}
 					}
 				}

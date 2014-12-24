@@ -3,6 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartArguments>"qx14ibfc" "training"  "300"</StartArguments>
     <StartWorkingDirectory>C:\Users\Administrateur\Desktop\Vindinium\</StartWorkingDirectory>
+    <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartArguments>"qx14ibfc"  "arena" "300"</StartArguments>
