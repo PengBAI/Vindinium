@@ -11,6 +11,7 @@ namespace vindinium
 		{
 		private ServerStuff serverStuff;
 		private AStar aStar;
+		private int lastTurnMyLife = 0;
 
 		public MyAiBot(ServerStuff serverStuff)
 			{
@@ -49,8 +50,6 @@ namespace vindinium
 				// prendre cet index d'ensemble de path comme décision, index avec minimum longeur par défault
 				int indexPath = 0;
 
-				// à faire.....
-				// boire 2 fois bière 
 
 				if (AllOtherMine.Count < serverStuff.myHero.mineCount)
 					{
@@ -59,7 +58,7 @@ namespace vindinium
 					}
 				else
 					{
-					if (serverStuff.myHero.life > 45)
+					if (serverStuff.myHero.life > 35)
 						{
 						// tuer hero qui a le plus mine
 						int idHeroMostMine = hasMostMine();
@@ -75,30 +74,27 @@ namespace vindinium
 							}
 						else
 							{
-							// tuer hero avec moins de life
-							int idHeroLessLife = hasLessLife();
-							if (idHeroLessLife != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHeroLessLife - 1].life)
+							// hero proche de moi dans 3 distances
+							int idHeroLowerestLife = isClosestHero();
+							if (idHeroLowerestLife != 0)
 								{
-								indexPath = moveToHero(path, idHeroLessLife);
-								if (path[indexPath].Count > 4)
+								if (serverStuff.heroes[idHeroLowerestLife - 1].life + 10 < serverStuff.myHero.life)
 									{
-									// aller au MineNeutral
-									path.Clear();
-									indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+									// tuer le hero
+									indexPath = moveToHero(path, idHeroLowerestLife);
+									}
+								else
+									{
+									// aller au Tavern proche mon place origine
+									//List<Pos> monTavern = new List<Pos>();
+									//monTavern.Add(TavernPos[serverStuff.myHero.id - 1]);
+									indexPath = moveToNearestTavern(path, TavernPos);
 									}
 								}
 							else
 								{
-								if (isClosestHero())
-									{
-									// aller au Tavern
-									indexPath = moveToNearestTavern(path, TavernPos);
-									}
-								else
-									{
-									// aller au MineNeutral
-									indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
-									}
+								// a1ller au MineNeutral
+								indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 								}
 							}
 						}
@@ -108,6 +104,14 @@ namespace vindinium
 						indexPath = moveToNearestTavern(path, TavernPos);
 						}
 					}
+
+				// boire 2 fois bière 
+				if (serverStuff.myHero.life - lastTurnMyLife == 49)
+					{
+					// aller au Tavern
+					indexPath = moveToNearestTavern(path, TavernPos);
+					}
+				lastTurnMyLife = serverStuff.myHero.life;
 
 				// s'il y a pas de path disponible, changer un autre
 				if (path[indexPath].Count == 0)
@@ -122,6 +126,22 @@ namespace vindinium
 							}
 						}
 					}
+
+				// si pas de path 
+				if (path[indexPath].Count == 0)
+					{
+					path.Clear();
+					// aller au Tavern
+					indexPath = moveToNearestTavern(path, TavernPos);
+					if (path[indexPath].Count == 0)
+						{
+						path.Clear();
+						// aller au hero
+						int idHeroLowerestLife = isClosestHero();
+						indexPath = moveToHero(path, idHeroLowerestLife);
+						}
+					}
+
 				// bouger à destination
 				if (path[indexPath].Count == 0)
 					{
@@ -309,46 +329,45 @@ namespace vindinium
 		/// Mon hero a moins de life que l'autre qui est proche de moi
 		/// </summary>
 		/// <returns></returns>
-		private bool isClosestHero()
+		private int isClosestHero()
 			{
 			List<List<Point>> path = new List<List<Point>>();
 			List<Pos> HeroPos = new List<Pos>();
 			List<Point> tmpPathToHero;
 			int indexMin = 0;
+			int indexHero = 0;
 			int pathMin = int.MaxValue;
+
 			for (int i = 0 ; i < 4 ; i++)
 				{
 				if (i + 1 != serverStuff.myHero.id)
 					{
-					HeroPos.Add(new Pos(serverStuff.heroes[i].pos.x, serverStuff.heroes[i].pos.y));
+					// start position est le position de MyHero
+					Point startPt = new Point(serverStuff.myHero.pos.x, serverStuff.myHero.pos.y);
+					// trouver le position FREE au tours du Tavern
+					Point endPt = new Point(serverStuff.heroes[i].pos.x, serverStuff.heroes[i].pos.y);
+					// chercher le plus court chemin de tous les Taverns
+					tmpPathToHero = aStar.FindPath(startPt, endPt);
+					// tous les path à Taverns
+					path.Add(tmpPathToHero);
+					// garder l'index du plus court chemin
+					if (tmpPathToHero.Count <= pathMin)
+						{
+						pathMin = tmpPathToHero.Count;
+						indexMin = path.Count - 1;
+						indexHero = i;
+						}
 					}
 				}
 
-			foreach (Pos tmpPos in HeroPos)
+			// s'il a hero proche de moi à distance 3
+			if (path[indexMin].Count <= 3)
 				{
-				// start position est le position de MyHero
-				Point startPt = new Point(serverStuff.myHero.pos.x, serverStuff.myHero.pos.y);
-				// trouver le position FREE au tours du Tavern
-				Point endPt = new Point(tmpPos.x, tmpPos.y);
-				// chercher le plus court chemin de tous les Taverns
-				tmpPathToHero = aStar.FindPath(startPt, endPt);
-				// tous les path à Taverns
-				path.Add(tmpPathToHero);
-				// garder l'index du plus court chemin
-				if (tmpPathToHero.Count <= pathMin)
-					{
-					pathMin = tmpPathToHero.Count;
-					indexMin = path.Count - 1;
-					}
-				}
-			// s'il a hero proche de moi à distance 2
-			if (path[indexMin].Count <= 2)
-				{
-				return true;
+				return indexHero + 1;
 				}
 			else
 				{
-				return false;
+				return 0;
 				}
 			}
 
@@ -370,7 +389,7 @@ namespace vindinium
 		/// quel hero a le moins life
 		/// </summary>
 		/// <returns> id de hero</returns>
-		private int hasLessLife()
+		private int hasLowerestLife()
 			{
 			int[] countLife = {serverStuff.heroes[0].life, serverStuff.heroes[1].life, 
 								serverStuff.heroes[2].life, serverStuff.heroes[3].life};
