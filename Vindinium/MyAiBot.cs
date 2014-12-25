@@ -42,8 +42,6 @@ namespace vindinium
 				List<Pos> AllOtherMine = new List<Pos>();
 				// un ensemble de paths à destinations
 				List<List<Point>> path = new List<List<Point>>();
-				// pour chaque path, la longueur
-				//List<int> CountPath = new List<int>();
 
 				aStar = new AStar(serverStuff.board, serverStuff);
 				// touver les positions Mine et Tavern
@@ -51,7 +49,10 @@ namespace vindinium
 				// prendre cet index d'ensemble de path comme décision, index avec minimum longeur par défault
 				int indexPath = 0;
 
-				if (AllOtherMine.Count == 0)
+				// à faire.....
+				// boire 2 fois bière 
+
+				if (AllOtherMine.Count < serverStuff.myHero.mineCount)
 					{
 					// si tous les mine à moi, je reste à Tavern
 					indexPath = moveToNearestTavern(path, TavernPos);
@@ -60,11 +61,11 @@ namespace vindinium
 					{
 					if (serverStuff.myHero.life > 45)
 						{
-						int idHero = hasLessLife();
-						//int idHero = hasMostMine();
-						if (idHero != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHero - 1].life)
+						// tuer hero qui a le plus mine
+						int idHeroMostMine = hasMostMine();
+						if (idHeroMostMine != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHeroMostMine - 1].life)
 							{
-							indexPath = moveToHero(path, idHero);
+							indexPath = moveToHero(path, idHeroMostMine);
 							if (path[indexPath].Count > 4)
 								{
 								// aller au MineNeutral
@@ -74,15 +75,30 @@ namespace vindinium
 							}
 						else
 							{
-							if (isClosestHero())
+							// tuer hero avec moins de life
+							int idHeroLessLife = hasLessLife();
+							if (idHeroLessLife != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHeroLessLife - 1].life)
 								{
-								// aller au Tavern
-								indexPath = moveToNearestTavern(path, TavernPos);
+								indexPath = moveToHero(path, idHeroLessLife);
+								if (path[indexPath].Count > 4)
+									{
+									// aller au MineNeutral
+									path.Clear();
+									indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+									}
 								}
 							else
 								{
-								// aller au MineNeutral
-								indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+								if (isClosestHero())
+									{
+									// aller au Tavern
+									indexPath = moveToNearestTavern(path, TavernPos);
+									}
+								else
+									{
+									// aller au MineNeutral
+									indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+									}
 								}
 							}
 						}
@@ -94,31 +110,27 @@ namespace vindinium
 					}
 
 				// s'il y a pas de path disponible, changer un autre
-				while (path[indexPath].Count == 0 && indexPath < path.Count - 1)
+				if (path[indexPath].Count == 0)
 					{
-					indexPath++;
-					}
-				if (path[indexPath].Count == 0 && indexPath == path.Count - 1)
-					{
-					while (path[indexPath].Count == 0 && indexPath > 0)
+					int tmpCount = int.MaxValue;
+					for (int i = 0 ; i < path.Count ; i++)
 						{
-						indexPath--;
+						if (path[i].Count != 0 && path[i].Count < tmpCount)
+							{
+							indexPath = i;
+							tmpCount = path[i].Count;
+							}
 						}
 					}
-				if (path[indexPath].Count == 0 && indexPath == 0)
+				// bouger à destination
+				if (path[indexPath].Count == 0)
 					{
 					serverStuff.moveHero(Direction.Stay);
 					}
 				else
 					{
-					// bouger à destination
 					int deltaX = path[indexPath][0].X - serverStuff.myHero.pos.x;
 					int deltaY = path[indexPath][0].Y - serverStuff.myHero.pos.y;
-					/*if (deltaX == 0 && deltaY == 0)
-						{
-						serverStuff.moveHero(Direction.Stay);
-						}
-					else */
 					if (deltaX == -1 && deltaY == 0)
 						{
 						serverStuff.moveHero(Direction.North);
@@ -137,7 +149,6 @@ namespace vindinium
 						}
 					}
 				// supprimer des donnée de ce tour
-				//CountPath.Clear();
 				path.Clear();
 				AllOtherMine.Clear();
 				TavernPos.Clear();
@@ -352,7 +363,7 @@ namespace vindinium
 			int max = countMine.Max();
 			// Positioning max
 			int index = Array.IndexOf(countMine, max);
-			return index;
+			return index + 1;
 			}
 
 		/// <summary>
