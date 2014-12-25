@@ -42,24 +42,19 @@ namespace vindinium
 				List<Pos> AllOtherMine = new List<Pos>();
 				// un ensemble de paths à destinations
 				List<List<Point>> path = new List<List<Point>>();
+				// pour chaque path, la longueur
+				//List<int> CountPath = new List<int>();
 
 				aStar = new AStar(serverStuff.board, serverStuff);
 				// touver les positions Mine et Tavern
 				findAllPos(TavernPos, AllOtherMine);
-				// prendre cet index comme décision
-				int indexMin = 0;
+				// prendre cet index d'ensemble de path comme décision, index avec minimum longeur par défault
+				int indexPath = 0;
 
-				if (serverStuff.myHero.mineCount > AllOtherMine.Count)
+				if (AllOtherMine.Count == 0)
 					{
-					if (serverStuff.myHero.life == 100)
-						{
-						serverStuff.moveHero(Direction.Stay);
-						}
-					else
-						{
-						// si tous les mine à moi, je reste à Tavern
-						indexMin = moveToNearestTavern(path, TavernPos);
-						}
+					// si tous les mine à moi, je reste à Tavern
+					indexPath = moveToNearestTavern(path, TavernPos);
 					}
 				else
 					{
@@ -69,12 +64,12 @@ namespace vindinium
 						//int idHero = hasMostMine();
 						if (idHero != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHero - 1].life)
 							{
-							indexMin = moveToHero(path, idHero);
-							if (path[indexMin].Count > 2)
+							indexPath = moveToHero(path, idHero);
+							if (path[indexPath].Count > 4)
 								{
 								// aller au MineNeutral
 								path.Clear();
-								indexMin = moveToNearestAllOtherMine(path, AllOtherMine);
+								indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 								}
 							}
 						else
@@ -82,31 +77,49 @@ namespace vindinium
 							if (isClosestHero())
 								{
 								// aller au Tavern
-								indexMin = moveToNearestTavern(path, TavernPos);
+								indexPath = moveToNearestTavern(path, TavernPos);
 								}
 							else
 								{
 								// aller au MineNeutral
-								indexMin = moveToNearestAllOtherMine(path, AllOtherMine);
+								indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 								}
 							}
 						}
 					else
 						{
 						// aller au Tavern
-						indexMin = moveToNearestTavern(path, TavernPos);
+						indexPath = moveToNearestTavern(path, TavernPos);
 						}
 					}
-				// bouger à destination
-				if (path[indexMin].Count != 0)
+
+				// s'il y a pas de path disponible, changer un autre
+				while (path[indexPath].Count == 0 && indexPath < path.Count - 1)
 					{
-					int deltaX = path[indexMin][0].X - serverStuff.myHero.pos.x;
-					int deltaY = path[indexMin][0].Y - serverStuff.myHero.pos.y;
-					if (deltaX == 0 && deltaY == 0)
+					indexPath++;
+					}
+				if (path[indexPath].Count == 0 && indexPath == path.Count - 1)
+					{
+					while (path[indexPath].Count == 0 && indexPath > 0)
+						{
+						indexPath--;
+						}
+					}
+				if (path[indexPath].Count == 0 && indexPath == 0)
+					{
+					serverStuff.moveHero(Direction.Stay);
+					}
+				else
+					{
+					// bouger à destination
+					int deltaX = path[indexPath][0].X - serverStuff.myHero.pos.x;
+					int deltaY = path[indexPath][0].Y - serverStuff.myHero.pos.y;
+					/*if (deltaX == 0 && deltaY == 0)
 						{
 						serverStuff.moveHero(Direction.Stay);
 						}
-					else if (deltaX == -1 && deltaY == 0)
+					else */
+					if (deltaX == -1 && deltaY == 0)
 						{
 						serverStuff.moveHero(Direction.North);
 						}
@@ -123,12 +136,8 @@ namespace vindinium
 						serverStuff.moveHero(Direction.East);
 						}
 					}
-				// arriver à destination
-				else
-					{
-					serverStuff.moveHero(Direction.Stay);
-					}
 				// supprimer des donnée de ce tour
+				//CountPath.Clear();
 				path.Clear();
 				AllOtherMine.Clear();
 				TavernPos.Clear();
@@ -242,6 +251,7 @@ namespace vindinium
 				tmpPath = aStar.FindPath(startPt, endPt);
 				// tous les path à MineNeutral
 				path.Add(tmpPath);
+
 				// garder l'index du plus court chemin
 				if (tmpPath.Count <= pathMin)
 					{
@@ -273,6 +283,7 @@ namespace vindinium
 				tmpPath = aStar.FindPath(startPt, endPt);
 				// tous les path à Taverns
 				path.Add(tmpPath);
+
 				// garder l'index du plus court chemin
 				if (tmpPath.Count <= pathMin)
 					{

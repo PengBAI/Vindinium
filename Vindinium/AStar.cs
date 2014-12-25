@@ -278,7 +278,7 @@ namespace vindinium
 
 			//-----------------------------------------------------------------------
 			// Option: ajouter la fonction set 4 directions des heros notwalkable
-			//NotWalkableHero(endPoint, searchNodes);
+			NotWalkableHero(endPoint, searchNodes);
 			//-----------------------------------------------------------------------
 
 			// ajouter endPoint
