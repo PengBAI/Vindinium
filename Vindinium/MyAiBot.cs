@@ -75,7 +75,7 @@ namespace vindinium
 						else
 							{
 							// hero proche de moi dans 3 distances
-							int idHeroLowerestLife = isClosestHero();
+							int idHeroLowerestLife = isClosestHero(3);
 							if (idHeroLowerestLife != 0)
 								{
 								if (serverStuff.heroes[idHeroLowerestLife - 1].life + 10 < serverStuff.myHero.life)
@@ -137,8 +137,16 @@ namespace vindinium
 						{
 						path.Clear();
 						// aller au hero
-						int idHeroLowerestLife = isClosestHero();
-						indexPath = moveToHero(path, idHeroLowerestLife);
+						int idHeroLowerestLife = isClosestHero(8);
+						if (idHeroLowerestLife != 0)
+							{
+							indexPath = moveToHero(path, idHeroLowerestLife);
+							}
+						else
+							{
+							path.Add(new List<Point>());
+							indexPath = 0;
+							}
 						}
 					}
 
@@ -329,7 +337,7 @@ namespace vindinium
 		/// Mon hero a moins de life que l'autre qui est proche de moi
 		/// </summary>
 		/// <returns></returns>
-		private int isClosestHero()
+		private int isClosestHero(int distance)
 			{
 			List<List<Point>> path = new List<List<Point>>();
 			List<Pos> HeroPos = new List<Pos>();
@@ -361,7 +369,7 @@ namespace vindinium
 				}
 
 			// s'il a hero proche de moi à distance 3
-			if (path[indexMin].Count <= 3)
+			if (path[indexMin].Count <= distance)
 				{
 				return indexHero + 1;
 				}
