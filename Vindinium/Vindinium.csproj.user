@@ -6,7 +6,7 @@
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <StartArguments>"qx14ibfc"  "arena" "300"</StartArguments>
+    <StartArguments>"03hyp8rf" "arena" "300"</StartArguments>
     <StartWorkingDirectory>C:\Users\Administrateur\Desktop\Vindinium\</StartWorkingDirectory>
   </PropertyGroup>
 </Project>

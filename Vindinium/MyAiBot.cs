@@ -12,6 +12,7 @@ namespace vindinium
 		private ServerStuff serverStuff;
 		private AStar aStar;
 		private int lastTurnMyLife = 0;
+		private int tuerTurn = 0;
 
 		public MyAiBot(ServerStuff serverStuff)
 			{
@@ -65,7 +66,7 @@ namespace vindinium
 						if (idHeroMostMine != serverStuff.myHero.id && serverStuff.myHero.life > serverStuff.heroes[idHeroMostMine - 1].life)
 							{
 							indexPath = moveToHero(path, idHeroMostMine);
-							if (path[indexPath].Count > 4)
+							if (path[indexPath].Count > serverStuff.board.Length / 3)
 								{
 								// aller au MineNeutral
 								path.Clear();
@@ -74,14 +75,23 @@ namespace vindinium
 							}
 						else
 							{
-							// hero proche de moi dans 3 distances
-							int idHeroLowerestLife = isClosestHero(3);
+							// hero proche de moi dans demi map length distances
+							int idHeroLowerestLife = isClosestHero(4);
 							if (idHeroLowerestLife != 0)
 								{
 								if (serverStuff.heroes[idHeroLowerestLife - 1].life + 10 < serverStuff.myHero.life)
 									{
-									// tuer le hero
-									indexPath = moveToHero(path, idHeroLowerestLife);
+									if (tuerTurn++ == serverStuff.board.Length / 3)
+										{
+										// trop long et ne peut pas le suivre
+										tuerTurn = 0;
+										indexPath = moveToNearestTavern(path, TavernPos);
+										}
+									else
+										{
+										// tuer le hero
+										indexPath = moveToHero(path, idHeroLowerestLife);
+										}
 									}
 								else
 									{
@@ -137,7 +147,7 @@ namespace vindinium
 						{
 						path.Clear();
 						// aller au hero
-						int idHeroLowerestLife = isClosestHero(8);
+						int idHeroLowerestLife = isClosestHero(serverStuff.board.Length / 3);
 						if (idHeroLowerestLife != 0)
 							{
 							indexPath = moveToHero(path, idHeroLowerestLife);
