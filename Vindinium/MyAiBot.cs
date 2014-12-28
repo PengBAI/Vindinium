@@ -75,13 +75,13 @@ namespace vindinium
 							}
 						else
 							{
-							// hero proche de moi dans demi map length distances
-							int idHeroLowerestLife = isClosestHero(4);
-							if (idHeroLowerestLife != 0)
+							// hero proche de moi dans 4 length distances
+							int idHeroNear = isClosestHero(4);
+							if (idHeroNear != 0)
 								{
-								if (serverStuff.heroes[idHeroLowerestLife - 1].life + 10 < serverStuff.myHero.life)
+								if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 									{
-									if (tuerTurn++ == serverStuff.board.Length / 3)
+									if (tuerTurn++ == serverStuff.board.Length / 2)
 										{
 										// trop long et ne peut pas le suivre
 										tuerTurn = 0;
@@ -90,14 +90,12 @@ namespace vindinium
 									else
 										{
 										// tuer le hero
-										indexPath = moveToHero(path, idHeroLowerestLife);
+										indexPath = moveToHero(path, idHeroNear);
 										}
 									}
 								else
 									{
 									// aller au Tavern proche mon place origine
-									//List<Pos> monTavern = new List<Pos>();
-									//monTavern.Add(TavernPos[serverStuff.myHero.id - 1]);
 									indexPath = moveToNearestTavern(path, TavernPos);
 									}
 								}
