@@ -225,7 +225,7 @@ namespace vindinium
 			List<Pos> HeroPos = new List<Pos>();
 			for (int i = 0 ; i < 4 ; i++)
 				{
-				if (i + 1 != serverStuff.myHero.id)
+				if (i + 1 != serverStuff.myHero.id && serverStuff.heroes[i].crashed == false)
 					{
 					HeroPos.Add(new Pos(serverStuff.heroes[i].pos.x, serverStuff.heroes[i].pos.y));
 					}

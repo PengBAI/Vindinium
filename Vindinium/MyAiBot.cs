@@ -11,8 +11,9 @@ namespace vindinium
 		{
 		private ServerStuff serverStuff;
 		private AStar aStar;
-		private int lastTurnMyLife = 0;
-		private int tuerTurn = 0;
+		private int lastTurnMyLife = 0; // MyHero life dans le dernier turn
+		private int tuerTurn = 0;  // le nombre de turn pour tuer le Hero 
+		private int lastTurnMine = 0;  // le nombre de mon mine dans le dernier turn
 
 		public MyAiBot(ServerStuff serverStuff)
 			{
@@ -37,13 +38,13 @@ namespace vindinium
 			/////////////////////////////////////////////////////////////////////////////////
 			//                        BEGIN: stratégies                                    //
 			//-----------------------------------------------------------------------------//
+			List<Pos> TavernPos = new List<Pos>(4);
+			List<Pos> AllOtherMine = new List<Pos>();
+			// un ensemble de paths à destinations
+			List<List<Point>> path = new List<List<Point>>();
+
 			while (serverStuff.finished == false && serverStuff.errored == false)
 				{
-
-				List<Pos> TavernPos = new List<Pos>();
-				List<Pos> AllOtherMine = new List<Pos>();
-				// un ensemble de paths à destinations
-				List<List<Point>> path = new List<List<Point>>();
 
 				aStar = new AStar(serverStuff.board, serverStuff);
 				// touver les positions Mine et Tavern
@@ -51,8 +52,12 @@ namespace vindinium
 				// prendre cet index d'ensemble de path comme décision, index avec minimum longeur par défault
 				int indexPath = 0;
 
-
-				if (AllOtherMine.Count < serverStuff.myHero.mineCount)
+				if (serverStuff.myHero.mineCount != lastTurnMine)
+					{
+					// mis à jour le compteur de tuer Hero
+					tuerTurn = 0;
+					}
+				if (AllOtherMine.Count < serverStuff.myHero.mineCount && serverStuff.myHero.mineCount > 4)
 					{
 					// si tous les mine à moi, je reste à Tavern
 					indexPath = moveToNearestTavern(path, TavernPos);
@@ -70,27 +75,53 @@ namespace vindinium
 								{
 								// aller au MineNeutral
 								path.Clear();
-								indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+								// hero proche de moi dans 4 length distances
+								int idHeroNear = isClosestHero(serverStuff.board.Length / 5);
+								if (idHeroNear != 0)
+									{
+									if (serverStuff.heroes[idHeroNear - 1].life + 5 < serverStuff.myHero.life)
+										{
+										// tuer le hero
+										if (tuerTurn++ < serverStuff.board.Length / 4 && serverStuff.heroes[idHeroNear - 1].crashed == false)
+											{
+											indexPath = moveToHero(path, idHeroNear);
+											}
+										else
+											{
+											// a1ller au MineNeutral
+											indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+											}
+										}
+									else
+										{
+										// aller au Tavern proche mon place origine
+										indexPath = moveToNearestTavern(path, TavernPos);
+										}
+									}
+								else
+									{
+									// a1ller au MineNeutral
+									indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+									}
 								}
 							}
 						else
 							{
 							// hero proche de moi dans 4 length distances
-							int idHeroNear = isClosestHero(4);
+							int idHeroNear = isClosestHero(serverStuff.board.Length / 5);
 							if (idHeroNear != 0)
 								{
-								if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
+								if (serverStuff.heroes[idHeroNear - 1].life + 5 < serverStuff.myHero.life)
 									{
-									if (tuerTurn++ == serverStuff.board.Length / 2)
+									// tuer le hero
+									if (tuerTurn++ < serverStuff.board.Length / 4 && serverStuff.heroes[idHeroNear - 1].crashed == false)
 										{
-										// trop long et ne peut pas le suivre
-										tuerTurn = 0;
-										indexPath = moveToNearestTavern(path, TavernPos);
+										indexPath = moveToHero(path, idHeroNear);
 										}
 									else
 										{
-										// tuer le hero
-										indexPath = moveToHero(path, idHeroNear);
+										// a1ller au MineNeutral
+										indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 										}
 									}
 								else
@@ -145,10 +176,10 @@ namespace vindinium
 						{
 						path.Clear();
 						// aller au hero
-						int idHeroLowerestLife = isClosestHero(serverStuff.board.Length / 3);
-						if (idHeroLowerestLife != 0)
+						int idHeroProche = isClosestHero(serverStuff.board.Length / 3);
+						if (idHeroProche != 0)
 							{
-							indexPath = moveToHero(path, idHeroLowerestLife);
+							indexPath = moveToHero(path, idHeroProche);
 							}
 						else
 							{
@@ -158,6 +189,7 @@ namespace vindinium
 						}
 					}
 
+				lastTurnMine = serverStuff.myHero.mineCount;
 				// bouger à destination
 				if (path[indexPath].Count == 0)
 					{
@@ -347,10 +379,9 @@ namespace vindinium
 		/// <returns></returns>
 		private int isClosestHero(int distance)
 			{
-			List<List<Point>> path = new List<List<Point>>();
 			List<Pos> HeroPos = new List<Pos>();
 			List<Point> tmpPathToHero;
-			int indexMin = 0;
+			//int indexMin = 0;
 			int indexHero = 0;
 			int pathMin = int.MaxValue;
 
@@ -364,27 +395,18 @@ namespace vindinium
 					Point endPt = new Point(serverStuff.heroes[i].pos.x, serverStuff.heroes[i].pos.y);
 					// chercher le plus court chemin de tous les Taverns
 					tmpPathToHero = aStar.FindPath(startPt, endPt);
-					// tous les path à Taverns
-					path.Add(tmpPathToHero);
 					// garder l'index du plus court chemin
 					if (tmpPathToHero.Count <= pathMin)
 						{
 						pathMin = tmpPathToHero.Count;
-						indexMin = path.Count - 1;
-						indexHero = i;
+						if (pathMin <= distance)
+							{
+							indexHero = i;
+							}
 						}
 					}
 				}
-
-			// s'il a hero proche de moi à distance 3
-			if (path[indexMin].Count <= distance)
-				{
-				return indexHero + 1;
-				}
-			else
-				{
-				return 0;
-				}
+			return indexHero == 0 ? 0 : indexHero + 1;
 			}
 
 		/// <summary>
