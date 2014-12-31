@@ -70,7 +70,7 @@ namespace vindinium
 								// aller au MineNeutral
 								path.Clear();
 								// hero proche de moi dans x length distances
-								int idHeroNear = isClosestHero(serverStuff.board.Length / 5 > 3 ? serverStuff.board.Length / 5 : 3);
+								int idHeroNear = isClosestHero(4);//serverStuff.board.Length / 5 > 4 ? serverStuff.board.Length / 5 : 4);
 								if (idHeroNear != 0)
 									{
 									if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
@@ -102,7 +102,7 @@ namespace vindinium
 						else
 							{
 							// hero proche de moi dans 4 length distances
-							int idHeroNear = isClosestHero(serverStuff.board.Length / 5 > 3 ? serverStuff.board.Length / 5 : 3);
+							int idHeroNear = isClosestHero(4);//serverStuff.board.Length / 5 > 4 ? serverStuff.board.Length / 5 : 4);
 							if (idHeroNear != 0)
 								{
 								if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
