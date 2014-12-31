@@ -70,7 +70,7 @@ namespace vindinium
 								// aller au MineNeutral
 								path.Clear();
 								// hero proche de moi dans x length distances
-								int idHeroNear = isClosestHero(4);//serverStuff.board.Length / 5 > 4 ? serverStuff.board.Length / 5 : 4);
+								int idHeroNear = isClosestHero(4);//serverStuff.board.Length / 5 > 4? serverStuff.board.Length / 5 : 4);
 								if (idHeroNear != 0)
 									{
 									if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
@@ -141,6 +141,7 @@ namespace vindinium
 				// boire 2 fois bière 
 				if (serverStuff.myHero.life - lastTurnMyLife == 49)
 					{
+					path.Clear();
 					// aller au Tavern
 					indexPath = moveToNearestTavern(path, TavernPos);
 					}
@@ -170,7 +171,7 @@ namespace vindinium
 						{
 						path.Clear();
 						// aller au hero
-						int idHeroProche = isClosestHero(serverStuff.board.Length / 3);
+						int idHeroProche = isClosestHero(serverStuff.board.Length);
 						if (idHeroProche != 0)
 							{
 							indexPath = moveToHero(path, idHeroProche);
