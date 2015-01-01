@@ -13,6 +13,9 @@ namespace vindinium
 		private AStar aStar;
 		private int lastTurnMyLife = 0; // MyHero life dans le dernier turn
 		private int lastTurnMine = 0;  // le nombre de mon mine dans le dernier turn
+		private int lastHeroId = 0;
+		private bool KillHero = true; // true -> HERO ou false -> MINE
+		private int killStep = 0;  // Count les steps de suivre Heros
 
 		public MyAiBot(ServerStuff serverStuff)
 			{
@@ -42,6 +45,18 @@ namespace vindinium
 			// un ensemble de paths à destinations
 			List<List<Point>> path = new List<List<Point>>();
 
+			// option à tuer Heros, si toujours le suivre mais ne peut pas arriver à tuer
+			if (serverStuff.myHero.mineCount != lastTurnMine)
+				{
+				KillHero = true;
+				killStep = 0;
+				}
+			// ne tuer pas Hero qui ne peut pas être tué, et aller au Mine
+			if (killStep > serverStuff.board.Length / 3)
+				{
+				KillHero = false;
+				}
+
 			while (serverStuff.finished == false && serverStuff.errored == false)
 				{
 
@@ -64,25 +79,55 @@ namespace vindinium
 						int idHeroMostMine = hasMostMine();
 						if (idHeroMostMine != serverStuff.myHero.id && serverStuff.myHero.life > 5 + serverStuff.heroes[idHeroMostMine - 1].life)
 							{
+
+							if (lastHeroId == idHeroMostMine)
+								{
+								killStep++;
+								}
+							else
+								{
+								killStep = 0;
+								}
 							indexPath = moveToHero(path, idHeroMostMine);
+							lastHeroId = idHeroMostMine;
+
 							if (path[indexPath].Count > serverStuff.board.Length / 3)
 								{
+								killStep--;
 								// aller au MineNeutral
 								path.Clear();
 								// hero proche de moi dans x length distances
-								int idHeroNear = isClosestHero(4);//serverStuff.board.Length / 5 > 4? serverStuff.board.Length / 5 : 4);
+								int idHeroNear = isClosestHero(4);
 								if (idHeroNear != 0)
 									{
 									if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 										{
 										// tuer le hero
-										if (serverStuff.heroes[idHeroNear - 1].crashed == false)
+										if (KillHero)
 											{
-											indexPath = moveToHero(path, idHeroNear);
+											if (serverStuff.heroes[idHeroNear - 1].crashed == false)
+												{
+
+												if (lastHeroId == idHeroNear)
+													{
+													killStep++;
+													}
+												else
+													{
+													killStep = 0;
+													}
+												indexPath = moveToHero(path, idHeroNear);
+												lastHeroId = idHeroNear;
+
+												}
+											else
+												{
+												// aller au MineNeutral
+												indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+												}
 											}
 										else
 											{
-											// a1ller au MineNeutral
 											indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 											}
 										}
@@ -102,19 +147,37 @@ namespace vindinium
 						else
 							{
 							// hero proche de moi dans 4 length distances
-							int idHeroNear = isClosestHero(4);//serverStuff.board.Length / 5 > 4 ? serverStuff.board.Length / 5 : 4);
+							int idHeroNear = isClosestHero(4);
 							if (idHeroNear != 0)
 								{
 								if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 									{
 									// tuer le hero
-									if (serverStuff.heroes[idHeroNear - 1].crashed == false)
+									if (KillHero)
 										{
-										indexPath = moveToHero(path, idHeroNear);
+										if (serverStuff.heroes[idHeroNear - 1].crashed == false)
+											{
+
+											if (lastHeroId == idHeroNear)
+												{
+												killStep++;
+												}
+											else
+												{
+												killStep = 0;
+												}
+											indexPath = moveToHero(path, idHeroNear);
+											lastHeroId = idHeroNear;
+
+											}
+										else
+											{
+											// aller au MineNeutral
+											indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+											}
 										}
 									else
 										{
-										// a1ller au MineNeutral
 										indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 										}
 									}
@@ -382,7 +445,7 @@ namespace vindinium
 
 			for (int i = 0 ; i < 4 ; i++)
 				{
-				if (i + 1 != serverStuff.myHero.id)
+				if (i + 1 != serverStuff.myHero.id)// && serverStuff.heroes[i].crashed == false)
 					{
 					// start position est le position de MyHero
 					Point startPt = new Point(serverStuff.myHero.pos.x, serverStuff.myHero.pos.y);
