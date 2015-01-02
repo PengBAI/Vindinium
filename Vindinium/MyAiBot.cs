@@ -80,16 +80,7 @@ namespace vindinium
 						if (idHeroMostMine != serverStuff.myHero.id && serverStuff.myHero.life > 5 + serverStuff.heroes[idHeroMostMine - 1].life)
 							{
 
-							if (lastHeroId == idHeroMostMine)
-								{
-								killStep++;
-								}
-							else
-								{
-								killStep = 0;
-								}
 							indexPath = moveToHero(path, idHeroMostMine);
-							lastHeroId = idHeroMostMine;
 
 							if (path[indexPath].Count > serverStuff.board.Length / 3)
 								{
@@ -103,22 +94,13 @@ namespace vindinium
 									if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 										{
 										// tuer le hero
-										if (KillHero)
+										if (KillHero && lastHeroId == idHeroNear)
 											{
 											if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 												{
 
-												if (lastHeroId == idHeroNear)
-													{
-													killStep++;
-													}
-												else
-													{
-													killStep = 0;
-													}
 												indexPath = moveToHero(path, idHeroNear);
 												lastHeroId = idHeroNear;
-
 												}
 											else
 												{
@@ -128,6 +110,9 @@ namespace vindinium
 											}
 										else
 											{
+											lastHeroId = idHeroNear;
+											KillHero = true;
+											killStep = 0;
 											indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 											}
 										}
@@ -153,19 +138,11 @@ namespace vindinium
 								if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 									{
 									// tuer le hero
-									if (KillHero)
+									if (KillHero && lastHeroId == idHeroNear)
 										{
 										if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 											{
 
-											if (lastHeroId == idHeroNear)
-												{
-												killStep++;
-												}
-											else
-												{
-												killStep = 0;
-												}
 											indexPath = moveToHero(path, idHeroNear);
 											lastHeroId = idHeroNear;
 
@@ -178,6 +155,9 @@ namespace vindinium
 										}
 									else
 										{
+										lastHeroId = idHeroNear;
+										KillHero = true;
+										killStep = 0;
 										indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 										}
 									}
