@@ -84,21 +84,30 @@ namespace vindinium
 
 							if (path[indexPath].Count > serverStuff.board.Length / 3)
 								{
-								killStep--;
+
 								// aller au MineNeutral
 								path.Clear();
 								// hero proche de moi dans x length distances
-								int idHeroNear = isClosestHero(4);
+								int idHeroNear = isClosestHero(serverStuff.board.Length/4 < 4 ? serverStuff.board.Length/4 : 4);
 								if (idHeroNear != 0)
 									{
 									if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 										{
+										// même Hero que turn dernier
+										if (lastHeroId == idHeroNear)
+											{
+											killStep++;
+											}
+										else
+											{
+											KillHero = true;
+											killStep = 0;
+											}
 										// tuer le hero
-										if (KillHero && lastHeroId == idHeroNear)
+										if (KillHero)
 											{
 											if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 												{
-
 												indexPath = moveToHero(path, idHeroNear);
 												lastHeroId = idHeroNear;
 												}
@@ -110,9 +119,6 @@ namespace vindinium
 											}
 										else
 											{
-											lastHeroId = idHeroNear;
-											KillHero = true;
-											killStep = 0;
 											indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 											}
 										}
@@ -132,20 +138,28 @@ namespace vindinium
 						else
 							{
 							// hero proche de moi dans 4 length distances
-							int idHeroNear = isClosestHero(4);
+							int idHeroNear = isClosestHero(serverStuff.board.Length / 4 < 4 ? serverStuff.board.Length / 4 : 4);
 							if (idHeroNear != 0)
 								{
 								if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 									{
+									// même Hero que turn dernier
+									if (lastHeroId == idHeroNear)
+										{
+										killStep++;
+										}
+									else
+										{
+										KillHero = true;
+										killStep = 0;
+										}
 									// tuer le hero
-									if (KillHero && lastHeroId == idHeroNear)
+									if (KillHero)
 										{
 										if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 											{
-
 											indexPath = moveToHero(path, idHeroNear);
 											lastHeroId = idHeroNear;
-
 											}
 										else
 											{
@@ -155,9 +169,6 @@ namespace vindinium
 										}
 									else
 										{
-										lastHeroId = idHeroNear;
-										KillHero = true;
-										killStep = 0;
 										indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
 										}
 									}
