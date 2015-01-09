@@ -82,18 +82,19 @@ namespace vindinium
 
 							indexPath = moveToHero(path, idHeroMostMine);
 
-							if (path[indexPath].Count > serverStuff.board.Length / 3)
+							if (path[indexPath].Count > (serverStuff.board.Length / 3 > 6 ? 6 : serverStuff.board.Length / 3))
 								{
 
 								// aller au MineNeutral
 								path.Clear();
 								// hero proche de moi dans x length distances
-								int idHeroNear = isClosestHero(serverStuff.board.Length/4 < 4 ? serverStuff.board.Length/4 : 4);
+								int idHeroNear = isClosestHero(serverStuff.board.Length / 4 < 4 ? serverStuff.board.Length / 4 : 4);
 								if (idHeroNear != 0)
 									{
 									if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 										{
 										// même Hero que turn dernier
+										// si on ne peut pas suivre le Hero, arrêter le tuer
 										if (lastHeroId == idHeroNear)
 											{
 											killStep++;
@@ -103,12 +104,22 @@ namespace vindinium
 											KillHero = true;
 											killStep = 0;
 											}
+
 										// tuer le hero
 										if (KillHero)
 											{
 											if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 												{
 												indexPath = moveToHero(path, idHeroNear);
+												// il y a un Mine plus proche, aller au Mine
+												if (killStep > 3 && IsMineNearBy(path[indexPath].Count))
+													{
+													path.Clear();
+													// aller au MineNeutral
+													indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+													KillHero = true;
+													killStep = 0;
+													}
 												lastHeroId = idHeroNear;
 												}
 											else
@@ -144,6 +155,7 @@ namespace vindinium
 								if (serverStuff.heroes[idHeroNear - 1].life + 10 < serverStuff.myHero.life)
 									{
 									// même Hero que turn dernier
+									// si on ne peut pas suivre le Hero, arrêter le tuer
 									if (lastHeroId == idHeroNear)
 										{
 										killStep++;
@@ -153,12 +165,22 @@ namespace vindinium
 										KillHero = true;
 										killStep = 0;
 										}
+
 									// tuer le hero
 									if (KillHero)
 										{
 										if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 											{
 											indexPath = moveToHero(path, idHeroNear);
+											// il y a un Mine plus proche, aller au Mine
+											if (killStep > 3 && IsMineNearBy(path[indexPath].Count))
+												{
+												path.Clear();
+												// aller au MineNeutral
+												indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
+												KillHero = true;
+												killStep = 0;
+												}
 											lastHeroId = idHeroNear;
 											}
 										else
@@ -193,7 +215,7 @@ namespace vindinium
 					}
 
 				// boire 2 fois bière 
-				if (serverStuff.myHero.life - lastTurnMyLife == 49)
+				if (serverStuff.myHero.life - lastTurnMyLife == 49 && serverStuff.myHero.life < 85)
 					{
 					path.Clear();
 					// aller au Tavern
@@ -499,5 +521,75 @@ namespace vindinium
 			path.Add(aStar.FindPath(startPt, endPt));
 			return 0;
 			}
+
+		/// <summary>
+		/// Est-ce qu'il y a un Mine dans une distance donnée
+		/// </summary>
+		/// <param name="distance">nombre de distance</param>
+		/// <returns></returns>
+		private bool IsMineNearBy(int distance)
+			{
+			int maxIndex = serverStuff.board.Length - 1;
+			int xMin = serverStuff.myHero.pos.x - distance;
+			xMin = xMin < 0 ? 0 : xMin;
+			int xMax = xMin + 2 * distance;
+			xMax = xMax > maxIndex ? maxIndex : xMax;
+			int yMin = serverStuff.myHero.pos.y - distance;
+			yMin = yMin < 0 ? 0 : yMin;
+			int yMax = yMin + 2 * distance;
+			yMax = yMax > maxIndex ? maxIndex : yMax;
+			int idMyHero = serverStuff.myHero.id;
+
+			for (int i = xMin ; i < xMax ; i++)
+				{
+				for (int j = yMin ; j < yMax ; j++)
+					{
+					switch (serverStuff.board[i][j])
+						{
+						case Tile.GOLD_MINE_1:
+							// si le mine à moi, on break
+							if (idMyHero == 1)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_2:
+							if (idMyHero == 2)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_3:
+							if (idMyHero == 3)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_4:
+							if (idMyHero == 4)
+								{
+								break;
+								}
+							else
+								{
+								goto case Tile.GOLD_MINE_NEUTRAL;
+								}
+						case Tile.GOLD_MINE_NEUTRAL:
+							return true;
+						}
+					}
+				}
+			return false;
+			}
+
 		}
 	}
