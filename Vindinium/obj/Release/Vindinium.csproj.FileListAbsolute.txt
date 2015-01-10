@@ -1,4 +1,0 @@
-D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\bin\Release\client.exe
-D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\bin\Release\client.pdb
-D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\obj\Release\client.exe
-D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\obj\Release\client.pdb
