@@ -1,0 +1,5 @@
+D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\bin\Debug\client.exe
+D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\bin\Debug\client.pdb
+D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\obj\Debug\Vindinium.csprojResolveAssemblyReference.cache
+D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\obj\Debug\client.exe
+D:\EUP\DI-5\DI5_S9\Vindinium\Vindinium\obj\Debug\client.pdb

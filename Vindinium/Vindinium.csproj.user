@@ -2,11 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartArguments>"qx14ibfc" "training"  "300"</StartArguments>
-    <StartWorkingDirectory>C:\Users\Administrateur\Desktop\Vindinium\</StartWorkingDirectory>
+    <StartWorkingDirectory>D:\EUP\DI-5\DI5_S9\Vindinium\</StartWorkingDirectory>
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartArguments>"03hyp8rf" "arena" "300"</StartArguments>
-    <StartWorkingDirectory>C:\Users\Administrateur\Desktop\Vindinium\</StartWorkingDirectory>
+    <StartWorkingDirectory>D:\EUP\DI-5\DI5_S9\Vindinium\</StartWorkingDirectory>
   </PropertyGroup>
 </Project>
