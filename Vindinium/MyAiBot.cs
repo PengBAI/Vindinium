@@ -14,8 +14,10 @@ namespace vindinium
 		private int lastTurnMyLife = 0; // MyHero life dans le dernier turn
 		private int lastTurnMine = 0;  // le nombre de mon mine dans le dernier turn
 		private int lastHeroId = 0;
-		private bool KillHero = true; // true -> HERO ou false -> MINE
+		private bool killHero = true; // true -> HERO ou false -> MINE
 		private int killStep = 0;  // Count les steps de suivre Heros
+		private Pos lastPos = null; // postion de Mon Hero de dernier turn
+		private int postionCount = 0;
 
 		public MyAiBot(ServerStuff serverStuff)
 			{
@@ -48,13 +50,13 @@ namespace vindinium
 			// option à tuer Heros, si toujours le suivre mais ne peut pas arriver à tuer
 			if (serverStuff.myHero.mineCount != lastTurnMine)
 				{
-				KillHero = true;
+				killHero = true;
 				killStep = 0;
 				}
 			// ne tuer pas Hero qui ne peut pas être tué, et aller au Mine
 			if (killStep > serverStuff.board.Length / 3)
 				{
-				KillHero = false;
+				killHero = false;
 				}
 
 			while (serverStuff.finished == false && serverStuff.errored == false)
@@ -101,12 +103,12 @@ namespace vindinium
 											}
 										else
 											{
-											KillHero = true;
+											killHero = true;
 											killStep = 0;
 											}
 
 										// tuer le hero
-										if (KillHero)
+										if (killHero)
 											{
 											if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 												{
@@ -117,7 +119,7 @@ namespace vindinium
 													path.Clear();
 													// aller au MineNeutral
 													indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
-													KillHero = true;
+													killHero = true;
 													killStep = 0;
 													}
 												lastHeroId = idHeroNear;
@@ -162,12 +164,12 @@ namespace vindinium
 										}
 									else
 										{
-										KillHero = true;
+										killHero = true;
 										killStep = 0;
 										}
 
 									// tuer le hero
-									if (KillHero)
+									if (killHero)
 										{
 										if (serverStuff.heroes[idHeroNear - 1].crashed == false)
 											{
@@ -178,7 +180,7 @@ namespace vindinium
 												path.Clear();
 												// aller au MineNeutral
 												indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
-												KillHero = true;
+												killHero = true;
 												killStep = 0;
 												}
 											lastHeroId = idHeroNear;
@@ -222,6 +224,21 @@ namespace vindinium
 					indexPath = moveToNearestTavern(path, TavernPos);
 					}
 				lastTurnMyLife = serverStuff.myHero.life;
+
+				// Mon Hero ne bourge pas après 4 turns
+				if (lastPos == serverStuff.myHero.pos)
+					{
+					postionCount++;
+					}
+				if (postionCount > 4 && (AllOtherMine.Count > serverStuff.myHero.mineCount || serverStuff.myHero.mineCount < 4))
+					{
+					path.Clear();
+					// si tous les mine à moi, je reste à Tavern
+					indexPath = moveToNearestTavern(path, TavernPos);
+					postionCount = 0;
+					}
+				lastPos = serverStuff.myHero.pos;
+
 
 				// s'il y a pas de path disponible, changer un autre
 				if (path[indexPath].Count == 0)
