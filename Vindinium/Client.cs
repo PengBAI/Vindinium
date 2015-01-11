@@ -14,6 +14,7 @@ namespace vindinium
          * @param args args[1] [training|arena]
          * @param args args[2] number of turns
          * @param args args[3] HTTP URL of Vindinium server (optional)
+         * "03hyp8rf" "arena" "300"
          */
         static void Main(string[] args)
         {
@@ -21,7 +22,7 @@ namespace vindinium
 
             //create the server stuff, when not in training mode, it doesnt matter
             //what you use as the number of turns
-            ServerStuff serverStuff = new ServerStuff(args[0], args[1] != "arena", uint.Parse(args[2]), serverURL, null);
+            ServerStuff serverStuff = new ServerStuff("03hyp8rf", false, 300, serverURL, null);
 
             //create the random bot, replace this with your own bot
             //RandomBot bot = new RandomBot(serverStuff);
