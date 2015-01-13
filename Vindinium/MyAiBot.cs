@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace vindinium
+
 {
     class MyAiBot
     {
