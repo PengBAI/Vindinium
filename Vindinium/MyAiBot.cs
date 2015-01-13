@@ -126,6 +126,8 @@ namespace vindinium
                                             }
                                             else
                                             {
+                                                killHero = true;
+                                                killStep = 0;
                                                 // aller au MineNeutral
                                                 indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
                                             }
@@ -187,6 +189,8 @@ namespace vindinium
                                         }
                                         else
                                         {
+                                            killHero = true;
+                                            killStep = 0;
                                             // aller au MineNeutral
                                             indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
                                         }
@@ -226,7 +230,7 @@ namespace vindinium
                 lastTurnMyLife = serverStuff.myHero.life;
 
                 // Mon Hero ne bourge pas après 4 turns
-                if ( lastPos == serverStuff.myHero.pos)   //lastPos.x == serverStuff.myHero.pos.x && lastPos.y == serverStuff.myHero.pos.y)
+                if (lastPos != null && lastPos.x == serverStuff.myHero.pos.x && lastPos.y == serverStuff.myHero.pos.y)
                 {
                     postionCount++;
                 }
@@ -234,11 +238,11 @@ namespace vindinium
                 {
                     postionCount = 0;
                 }
-                if (postionCount > 4 && (AllOtherMine.Count > serverStuff.myHero.mineCount || serverStuff.myHero.mineCount < 4))
+                if (postionCount > 3 && (AllOtherMine.Count > serverStuff.myHero.mineCount || serverStuff.myHero.mineCount < 4))
                 {
                     path.Clear();
-                    // si tous les mine à moi, je reste à Tavern
-                    indexPath = moveToNearestTavern(path, TavernPos);
+                    // aller au MineNeutral
+                    indexPath = moveToNearestAllOtherMine(path, AllOtherMine);
                     postionCount = 0;
                 }
                 lastPos = serverStuff.myHero.pos;
